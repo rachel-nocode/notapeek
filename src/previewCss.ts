@@ -1,0 +1,164 @@
+// Shared markdown preview stylesheet. Keep in sync with
+// src-tauri/quicklook/Resources/preview.css so the in-app preview
+// matches the QuickLook extension visually.
+export const PREVIEW_CSS = String.raw`
+:root {
+  color-scheme: light dark;
+  --canvas: #f5f3f1; --surface: #ffffff; --surface-2: #fafaf9;
+  --fg: #15161a; --fg-soft: #2c2f36; --muted: #6b6f78; --faint: #8d929c;
+  --hairline: rgba(20, 22, 30, 0.08); --hairline-2: rgba(20, 22, 30, 0.12);
+  --accent: #ff4d8d; --accent-soft: rgba(255,77,141,0.12); --accent-fg: #c9255f;
+  --code-bg: #f5f4f7; --code-fg: #1a1c22;
+  --inline-bg: rgba(255,77,141,0.10); --inline-fg: #b7245a;
+  --quote-bg: rgba(255,77,141,0.06); --kbd-bg: #ffffff;
+  --table-stripe: rgba(20,22,30,0.025);
+  --shadow: 0 1px 0 rgba(20,22,30,0.04), 0 24px 60px -28px rgba(20,22,30,0.18);
+  --syn-keyword: #c9255f; --syn-string: #2f7d5a; --syn-number: #8b5cf6;
+  --syn-comment: #8d929c; --syn-fn: #2563d8; --syn-type: #b7245a; --syn-meta: #6b6f78;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #0c0c10; --surface: #15151b; --surface-2: #1a1a22;
+    --fg: #ecedf2; --fg-soft: #d6d8e0; --muted: #9aa0ad; --faint: #6b7080;
+    --hairline: rgba(255,255,255,0.08); --hairline-2: rgba(255,255,255,0.14);
+    --accent: #ff7ab6; --accent-soft: rgba(255,122,182,0.14); --accent-fg: #ff9ec8;
+    --code-bg: #15151c; --code-fg: #ecedf2;
+    --inline-bg: rgba(255,122,182,0.14); --inline-fg: #ffa6cd;
+    --quote-bg: rgba(255,122,182,0.06); --kbd-bg: #1f1f28;
+    --table-stripe: rgba(255,255,255,0.03);
+    --shadow: 0 1px 0 rgba(0,0,0,0.5), 0 30px 80px -30px rgba(0,0,0,0.7);
+    --syn-keyword: #ff7ab6; --syn-string: #8de0a8; --syn-number: #c4a6ff;
+    --syn-comment: #6b7080; --syn-fn: #82b1ff; --syn-type: #ffa6cd; --syn-meta: #9aa0ad;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; min-height: 100%; background: var(--canvas); color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+  font-size: 15px; line-height: 1.72; -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01","cv11","kern"; }
+.page { padding: 36px 32px 64px; display: flex; justify-content: center; }
+.markdown-body { width: 100%; max-width: 760px; background: var(--surface);
+  border: 1px solid var(--hairline); border-radius: 16px; box-shadow: var(--shadow);
+  padding: 48px 56px 64px; color: var(--fg); word-wrap: break-word; }
+.markdown-body > :first-child { margin-top: 0 !important; }
+.markdown-body > :last-child { margin-bottom: 0 !important; }
+
+.markdown-body p { margin: 0 0 1em; color: var(--fg-soft); }
+.markdown-body strong { font-weight: 650; color: var(--fg); }
+.markdown-body em { font-style: italic; }
+.markdown-body del { color: var(--muted); text-decoration-thickness: 1px; }
+.markdown-body mark { background: var(--accent-soft); color: var(--accent-fg); padding: 0 0.25em; border-radius: 4px; }
+.markdown-body a { color: var(--accent-fg); text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  transition: border-color 120ms ease, color 120ms ease; }
+.markdown-body a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+  margin: 1.9em 0 0.6em;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  font-weight: 700; letter-spacing: -0.011em; line-height: 1.2; color: var(--fg); }
+.markdown-body h1 { font-size: 2.05em; font-weight: 760; letter-spacing: -0.022em;
+  margin-top: 0.1em; padding-bottom: 0.45em; border-bottom: 1px solid var(--hairline); }
+.markdown-body h2 { font-size: 1.55em; font-weight: 720; letter-spacing: -0.018em;
+  margin-top: 2.1em; padding-bottom: 0.35em; border-bottom: 1px solid var(--hairline); }
+.markdown-body h3 { font-size: 1.22em; font-weight: 680; letter-spacing: -0.012em; }
+.markdown-body h4 { font-size: 1.05em; }
+.markdown-body h5 { font-size: 0.92em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.markdown-body h6 { font-size: 0.85em; color: var(--faint); font-weight: 600; }
+
+.markdown-body ul, .markdown-body ol { margin: 0 0 1em; padding-left: 1.55em; }
+.markdown-body ul ul, .markdown-body ol ol, .markdown-body ul ol, .markdown-body ol ul { margin: 0.35em 0; }
+.markdown-body li { margin: 0.32em 0; color: var(--fg-soft); }
+.markdown-body li::marker { color: var(--accent); font-weight: 600; }
+.markdown-body ul > li::marker { font-size: 1.1em; }
+.markdown-body li > p { margin: 0 0 0.4em; }
+.markdown-body li > p:last-child { margin-bottom: 0; }
+
+.markdown-body ul:has(> li.task-item), .markdown-body ol:has(> li.task-item) { list-style: none; padding-left: 0.1em; }
+.markdown-body li.task-item { position: relative; list-style: none; padding-left: 2em; margin: 0.4em 0; min-height: 1.4em; }
+.markdown-body li.task-item::marker { content: ""; }
+.markdown-body li.task-item > .task-checkbox {
+  position: absolute; left: 0; top: 0.2em; width: 1.25em; height: 1.25em;
+  padding: 0; margin: 0; border-radius: 6px; border: 1.5px solid var(--hairline-2); background: var(--surface-2);
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: inherit; font-size: 0.85em; font-weight: 800; color: transparent; line-height: 1;
+  transition: all 140ms ease; }
+.markdown-body li.task-item > .task-checkbox:hover { border-color: var(--accent); background: var(--accent-soft); }
+.markdown-body li.task-item > .task-checkbox:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.markdown-body li.task-item .task-checkbox-mark { pointer-events: none; }
+.markdown-body li.task-done > .task-checkbox,
+.markdown-body li.task-item > .task-checkbox[aria-pressed="true"] {
+  background: #f4f4f8; border-color: #f4f4f8; color: #14151a;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.2), 0 4px 10px -4px rgba(0,0,0,0.45); }
+.markdown-body li.task-done { color: var(--muted); text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--muted) 50%, transparent); text-decoration-thickness: 1px; }
+.markdown-body li.task-save-failed > .task-checkbox { border-color: #ff5c5c; box-shadow: 0 0 0 3px rgba(255,92,92,0.16); }
+
+.markdown-body blockquote { margin: 1.1em 0; padding: 0.7em 1.1em;
+  border-left: 3px solid var(--accent); background: var(--quote-bg);
+  border-radius: 0 10px 10px 0; color: var(--fg-soft); }
+.markdown-body blockquote p { margin: 0 0 0.6em; }
+.markdown-body blockquote > :last-child { margin-bottom: 0; }
+
+.markdown-body code { font-family: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+  font-size: 0.86em; background: var(--inline-bg); color: var(--inline-fg);
+  padding: 0.15em 0.42em; border-radius: 5px; font-feature-settings: "calt","liga" 0; }
+.markdown-body .code-block { position: relative; margin: 1.1em 0 1.3em; background: var(--code-bg);
+  border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;
+  box-shadow: 0 1px 0 rgba(20,22,30,0.02); }
+.markdown-body .code-block .code-lang { position: absolute; top: 10px; right: 14px;
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  font-size: 0.7em; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--faint); user-select: none; pointer-events: none; }
+.markdown-body .code-block pre { margin: 0; padding: 18px 20px; background: transparent;
+  overflow-x: auto; font-family: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+  font-size: 0.85em; line-height: 1.62; }
+.markdown-body .code-block pre code { background: none; color: var(--code-fg); padding: 0; border-radius: 0; font-size: 1em; }
+.markdown-body > pre { margin: 1.1em 0; padding: 18px 20px; background: var(--code-bg);
+  border: 1px solid var(--hairline); border-radius: 12px; overflow-x: auto;
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em; line-height: 1.62; color: var(--code-fg); }
+
+.hljs-comment, .hljs-quote { color: var(--syn-comment); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-section, .hljs-link, .hljs-built_in { color: var(--syn-keyword); }
+.hljs-string, .hljs-attr, .hljs-template-tag, .hljs-template-variable { color: var(--syn-string); }
+.hljs-number, .hljs-regexp, .hljs-deletion { color: var(--syn-number); }
+.hljs-title, .hljs-name, .hljs-type, .hljs-attribute, .hljs-symbol { color: var(--syn-fn); }
+.hljs-variable, .hljs-class, .hljs-meta { color: var(--syn-type); }
+.hljs-tag, .hljs-bullet { color: var(--syn-meta); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+
+.markdown-body hr { height: 1px; border: 0; background: var(--hairline); margin: 2.6em 0; }
+.markdown-body table { border-collapse: collapse; margin: 1.1em 0 1.4em; width: 100%;
+  font-size: 0.94em; border: 1px solid var(--hairline); border-radius: 10px; overflow: hidden; }
+.markdown-body th, .markdown-body td { padding: 9px 14px; border-bottom: 1px solid var(--hairline);
+  text-align: left; vertical-align: top; }
+.markdown-body th { background: var(--surface-2); font-weight: 650; color: var(--fg);
+  font-size: 0.86em; letter-spacing: 0.02em; text-transform: uppercase; }
+.markdown-body tbody tr:nth-child(even) td { background: var(--table-stripe); }
+.markdown-body tbody tr:last-child td { border-bottom: 0; }
+
+.markdown-body kbd { display: inline-block; padding: 1px 6px;
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  font-size: 0.8em; background: var(--kbd-bg);
+  border: 1px solid var(--hairline-2); border-bottom-width: 2px;
+  border-radius: 5px; color: var(--fg); }
+.markdown-body img { max-width: 100%; border-radius: 8px; display: block; margin: 0.8em auto; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--hairline-2); border-radius: 10px;
+  border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); background-clip: padding-box; border: 2px solid transparent; }
+
+@media (max-width: 680px) {
+  .page { padding: 16px 12px 32px; }
+  .markdown-body { padding: 32px 24px 40px; border-radius: 12px; }
+  .markdown-body h1 { font-size: 1.7em; }
+  .markdown-body h2 { font-size: 1.35em; }
+}
+`;

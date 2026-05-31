@@ -1,0 +1,129 @@
+:root {
+  color-scheme: light dark;
+  --chrome: rgba(255, 255, 255, 0.55);
+  --chrome-border: rgba(20, 22, 30, 0.08);
+  --fg: #15161a;
+  --fg-soft: #2c2f36;
+  --muted: #6b6f78;
+  --accent: #ff4d8d;
+  --accent-soft: rgba(255, 77, 141, 0.16);
+  --editor-fg: #1f2024;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --chrome: rgba(20, 20, 26, 0.55);
+    --chrome-border: rgba(255, 255, 255, 0.08);
+    --fg: #ecedf2;
+    --fg-soft: #d6d8e0;
+    --muted: #9aa0ad;
+    --accent: #ff7ab6;
+    --accent-soft: rgba(255, 122, 182, 0.18);
+    --editor-fg: #ecedf2;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  display: grid;
+  grid-template-rows: 44px 1fr;
+  height: 100vh;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px 0 78px;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--chrome-border);
+  backdrop-filter: saturate(140%) blur(20px);
+  -webkit-backdrop-filter: saturate(140%) blur(20px);
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.title { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-soft); }
+.title .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.title .name {
+  font-weight: 550; color: var(--fg);
+  max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.title .dirty { color: var(--accent); font-size: 10px; }
+
+.actions { display: flex; gap: 6px; -webkit-app-region: no-drag; }
+.actions button {
+  appearance: none;
+  border: 1px solid var(--chrome-border);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--fg-soft);
+  padding: 5px 12px;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+@media (prefers-color-scheme: dark) {
+  .actions button { background: rgba(255, 255, 255, 0.05); }
+}
+.actions button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.actions button.active { background: var(--accent); border-color: var(--accent); color: white; }
+.actions button:disabled { opacity: 0.4; cursor: default; }
+
+.empty { display: flex; align-items: center; justify-content: center; height: 100%; }
+.empty-card {
+  text-align: center; padding: 48px 56px;
+  border: 1.5px dashed var(--chrome-border); border-radius: 16px;
+  background: var(--chrome); backdrop-filter: blur(20px); max-width: 440px;
+}
+.empty-card h1 { margin: 0 0 4px; font-size: 32px; font-weight: 800; letter-spacing: -0.025em; }
+.empty-card .tagline { margin: 0 0 22px; font-size: 13px; color: var(--muted); font-style: italic; }
+.empty-card p { margin: 8px 0; color: var(--muted); line-height: 1.55; }
+.empty-card code, .empty-card kbd {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  font-size: 0.86em; background: var(--accent-soft); color: var(--accent);
+  padding: 2px 7px; border-radius: 5px;
+}
+.empty-card .hint { margin-top: 22px; font-size: 12px; color: var(--muted); opacity: 0.8; }
+
+.app.drop-hover .empty-card,
+.app.drop-hover .preview-only,
+.app.drop-hover .split {
+  outline: 2px solid var(--accent);
+  outline-offset: -8px;
+  border-radius: 14px;
+  transition: outline-color 120ms ease;
+}
+
+.split { display: grid; grid-template-columns: 1fr 1fr; height: 100%; overflow: hidden; }
+.split .pane { height: 100%; overflow: hidden; position: relative; }
+.split .editor-pane {
+  border-right: 1px solid var(--chrome-border);
+  background: var(--chrome); backdrop-filter: blur(20px);
+}
+.split .preview-pane { background: transparent; }
+.split iframe { border: 0; width: 100%; height: 100%; background: transparent; }
+
+.preview-only { height: 100%; overflow: hidden; }
+.preview-only iframe { border: 0; width: 100%; height: 100%; background: transparent; }
+
+.cm-editor { height: 100%; background: transparent; }
+.cm-editor.cm-focused { outline: none; }
+.cm-scroller { overflow: auto; }
