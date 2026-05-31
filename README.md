@@ -2,6 +2,8 @@
 
 NotaPeek is a native macOS Markdown viewer/editor built with Tauri, React, and Swift Quick Look. It gives `.md` files a polished rendered preview in the app and in Finder.
 
+![NotaPeek Markdown preview interface](docs/notapeek-screenshot.png)
+
 ## Features
 
 - Open Markdown files from Finder, drag and drop, or the file picker.
