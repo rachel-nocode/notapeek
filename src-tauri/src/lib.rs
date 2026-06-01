@@ -7,9 +7,31 @@ use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectStat
 #[derive(Default)]
 struct PendingFile(Mutex<Option<String>>);
 
+impl PendingFile {
+    fn set(&self, path: String) {
+        if let Ok(mut pending) = self.0.lock() {
+            *pending = Some(path);
+        }
+    }
+
+    fn take(&self) -> Option<String> {
+        self.0.lock().ok().and_then(|mut pending| pending.take())
+    }
+}
+
 #[tauri::command]
 fn consume_pending_file(state: State<'_, PendingFile>) -> Option<String> {
-    state.0.lock().ok().and_then(|mut g| g.take())
+    state.take()
+}
+
+fn opened_url_path(url: &tauri::Url) -> Option<String> {
+    if url.scheme() == "file" {
+        url.to_file_path()
+            .ok()
+            .map(|path| path.to_string_lossy().to_string())
+    } else {
+        Some(url.to_string())
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -51,15 +73,44 @@ pub fn run() {
     app.run(|app_handle, event| {
         if let RunEvent::Opened { urls } = event {
             for url in urls {
-                let path = if url.scheme() == "file" {
-                    url.to_file_path().ok().map(|p| p.to_string_lossy().to_string())
-                } else {
-                    Some(url.to_string())
-                };
-                if let Some(p) = path {
-                    let _ = app_handle.emit("file-open", p);
+                if let Some(path) = opened_url_path(&url) {
+                    app_handle.state::<PendingFile>().set(path.clone());
+                    let _ = app_handle.emit("file-open", path);
                 }
             }
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pending_file_returns_and_clears_latest_path() {
+        let pending = PendingFile::default();
+
+        pending.set("/tmp/first.md".to_string());
+        pending.set("/tmp/second.md".to_string());
+
+        assert_eq!(pending.take(), Some("/tmp/second.md".to_string()));
+        assert_eq!(pending.take(), None);
+    }
+
+    #[test]
+    fn opened_file_url_converts_to_plain_path() {
+        let url = tauri::Url::parse("file:///tmp/note.md").unwrap();
+
+        assert_eq!(opened_url_path(&url), Some("/tmp/note.md".to_string()));
+    }
+
+    #[test]
+    fn opened_non_file_url_is_preserved() {
+        let url = tauri::Url::parse("notapeek://open/path").unwrap();
+
+        assert_eq!(
+            opened_url_path(&url),
+            Some("notapeek://open/path".to_string())
+        );
+    }
 }

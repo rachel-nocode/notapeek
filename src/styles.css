@@ -56,10 +56,6 @@ html, body, #root {
 }
 
 .title { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-soft); }
-.title .dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
-}
 .title .name {
   font-weight: 550; color: var(--fg);
   max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;

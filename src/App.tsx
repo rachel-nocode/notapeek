@@ -262,7 +262,6 @@ export default function App() {
     <div className={`app mode-${mode}${dropHover ? " drop-hover" : ""}`} data-tauri-drag-region>
       <header className="toolbar" data-tauri-drag-region>
         <div className="title" data-tauri-drag-region>
-          <span className="dot" />
           <span className="name">{fileName}</span>
           {dirty && <span className="dirty" title="Unsaved changes">●</span>}
         </div>
