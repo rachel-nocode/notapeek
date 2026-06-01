@@ -72,7 +72,7 @@ bun run release:dmg
 Output:
 
 ```text
-release/NotaPeek-1.0.0-arm64.dmg
+release/NotaPeek-1.0.1-arm64.dmg
 ```
 
 ## Project Structure
