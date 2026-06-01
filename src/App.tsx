@@ -259,7 +259,7 @@ export default function App() {
   const empty = !filePath && !text;
 
   return (
-    <div className={`app mode-${mode}${dropHover ? " drop-hover" : ""}`} data-tauri-drag-region>
+    <div className={`app mode-${mode}${dropHover ? " drop-hover" : ""}`}>
       <header className="toolbar" data-tauri-drag-region>
         <div className="title" data-tauri-drag-region>
           <span className="name">{fileName}</span>

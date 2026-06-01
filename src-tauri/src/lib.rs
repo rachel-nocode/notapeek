@@ -34,6 +34,38 @@ fn opened_url_path(url: &tauri::Url) -> Option<String> {
     }
 }
 
+#[cfg(target_os = "macos")]
+fn activate_quicklook_extension_once() {
+    std::thread::spawn(|| {
+        let Some(home) = std::env::var_os("HOME") else {
+            return;
+        };
+
+        let marker = std::path::PathBuf::from(home)
+            .join("Library/Application Support/dev.rachel.notapeek")
+            .join(format!("quicklook-activated-{}", env!("CARGO_PKG_VERSION")));
+
+        if marker.exists() {
+            return;
+        }
+
+        let _ = std::process::Command::new("/usr/bin/pluginkit")
+            .args(["-e", "use", "-i", "dev.rachel.notapeek.quicklook"])
+            .status();
+        let _ = std::process::Command::new("/usr/bin/qlmanage")
+            .arg("-r")
+            .status();
+        let _ = std::process::Command::new("/usr/bin/qlmanage")
+            .args(["-r", "cache"])
+            .status();
+
+        if let Some(parent) = marker.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let _ = std::fs::write(marker, b"");
+    });
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Capture launch arg before Tauri eats argv.
@@ -58,6 +90,7 @@ pub fn run() {
                     Some(NSVisualEffectState::Active),
                     Some(12.0),
                 );
+                activate_quicklook_extension_once();
             }
 
             #[cfg(not(target_os = "macos"))]
