@@ -3,6 +3,22 @@
 <plist version="1.0">
 <dict>
 	<!-- Tauri merges these keys into the generated Info.plist (macOS). -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Markdown Document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>net.daringfireball.markdown</string>
+				<string>public.markdown</string>
+			</array>
+		</dict>
+	</array>
 	<!-- Exports the Markdown type so .md files resolve to net.daringfireball.markdown,
 	     which the bundled Quick Look extension declares support for. -->
 	<key>UTExportedTypeDeclarations</key>

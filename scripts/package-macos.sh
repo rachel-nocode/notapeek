@@ -44,7 +44,7 @@ echo
 echo "✓ $APP"
 echo
 echo "Test it:"
-echo "  1. cp -R \"$APP\" /Applications/"
+echo "  1. rm -rf \"/Applications/$APP_NAME.app\" && ditto \"$APP\" \"/Applications/$APP_NAME.app\""
 echo "  2. open \"/Applications/$APP_NAME.app\"   # registers the extension"
 echo "  3. qlmanage -r && qlmanage -r cache       # flush Quick Look cache"
 echo "  4. Select any .md file in Finder, press Space"

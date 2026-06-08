@@ -59,6 +59,25 @@ By default, local packaging uses ad-hoc signing. For distribution signing, pass 
 MACOS_SIGN_ID="Developer ID Application: Your Name (TEAMID)" bun run package:mac
 ```
 
+Install or refresh the local app by replacing the old bundle, not by copying over it:
+
+```bash
+rm -rf /Applications/NotaPeek.app
+ditto src-tauri/target/release/bundle/macos/NotaPeek.app /Applications/NotaPeek.app
+open /Applications/NotaPeek.app
+qlmanage -r && qlmanage -r cache
+```
+
+Do not use `cp -R ... /Applications/` over an existing app bundle. It can merge stale signed files with the new build and make the embedded Quick Look extension invalid.
+
+If Finder still does not render Markdown previews, verify Spotlight is enabled. Quick Look and LaunchServices need it to resolve file types and register app extensions:
+
+```bash
+mdutil -s /
+```
+
+If the output says `Spotlight server is disabled`, re-enable Spotlight in System Settings or with administrator privileges, then reopen NotaPeek and reset Quick Look again.
+
 ## Release DMG
 
 The release script builds, signs, packages, notarizes, and validates a distributable DMG:
@@ -72,7 +91,7 @@ bun run release:dmg
 Output:
 
 ```text
-release/NotaPeek-1.0.2-arm64.dmg
+release/NotaPeek-1.0.3-arm64.dmg
 ```
 
 ## Project Structure

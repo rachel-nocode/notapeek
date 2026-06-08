@@ -37,6 +37,15 @@ fn opened_url_path(url: &tauri::Url) -> Option<String> {
 #[cfg(target_os = "macos")]
 fn activate_quicklook_extension_once() {
     std::thread::spawn(|| {
+        let appex = std::env::current_exe()
+            .ok()
+            .and_then(|exe| {
+                exe.parent()
+                    .and_then(|macos| macos.parent())
+                    .map(|contents| contents.join("PlugIns/QuickLookMD.appex"))
+            })
+            .filter(|path| path.exists());
+
         let Some(home) = std::env::var_os("HOME") else {
             return;
         };
@@ -49,6 +58,12 @@ fn activate_quicklook_extension_once() {
             return;
         }
 
+        if let Some(appex) = appex.as_ref() {
+            let _ = std::process::Command::new("/usr/bin/pluginkit")
+                .arg("-a")
+                .arg(appex)
+                .status();
+        }
         let _ = std::process::Command::new("/usr/bin/pluginkit")
             .args(["-e", "use", "-i", "dev.rachel.notapeek.quicklook"])
             .status();

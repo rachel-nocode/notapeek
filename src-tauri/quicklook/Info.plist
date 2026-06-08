@@ -17,9 +17,31 @@
 	<key>CFBundlePackageType</key>
 	<string>XPC!</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.2</string>
+	<string>1.0.3</string>
 	<key>CFBundleVersion</key>
-	<string>3</string>
+	<string>5</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Markdown Document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>net.daringfireball.markdown</string>
+				<string>public.markdown</string>
+				<string>dyn.ah62d4rv4ge81e5pe</string>
+				<string>dyn.ah62d4rv4ge8043a</string>
+				<string>dyn.ah62d4rv4ge81c5pe</string>
+				<string>dyn.ah62d4rv4ge8043d2</string>
+				<string>dyn.ah62d4rv4ge8043dd</string>
+				<string>dyn.ah62d4rv4ge80c6dmqk</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
@@ -27,14 +49,46 @@
 			<key>QLSupportedContentTypes</key>
 			<array>
 				<string>net.daringfireball.markdown</string>
+				<string>public.markdown</string>
+				<string>dyn.ah62d4rv4ge81e5pe</string>
+				<string>dyn.ah62d4rv4ge8043a</string>
+				<string>dyn.ah62d4rv4ge81c5pe</string>
+				<string>dyn.ah62d4rv4ge8043d2</string>
+				<string>dyn.ah62d4rv4ge8043dd</string>
+				<string>dyn.ah62d4rv4ge80c6dmqk</string>
 			</array>
+			<key>QLIsDataBasedPreview</key>
+			<true/>
 			<key>QLSupportsSearchableItems</key>
 			<false/>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.quicklook.preview</string>
 		<key>NSExtensionPrincipalClass</key>
-		<string>QuickLookMD.PreviewViewController</string>
+		<string>PreviewProvider</string>
 	</dict>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.plain-text</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Markdown Document</string>
+			<key>UTTypeIdentifier</key>
+			<string>net.daringfireball.markdown</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>md</string>
+					<string>markdown</string>
+					<string>mdown</string>
+					<string>mkd</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

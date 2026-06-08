@@ -2,8 +2,10 @@ import AppKit
 import Foundation
 import JavaScriptCore
 import QuickLookUI
+import UniformTypeIdentifiers
 import WebKit
 
+@objc(PreviewViewController)
 final class PreviewViewController: NSViewController, QLPreviewingController, WKNavigationDelegate, WKScriptMessageHandler {
     private static let taskToggleMessage = "taskToggle"
     private static let taskMarkerPattern = try! NSRegularExpression(pattern: #"^[ \t]*(?:>[ \t]*)*(?:[-+*]|\d+[.)])[ \t]+\[([ xX])\]"#)
@@ -344,6 +346,152 @@ final class PreviewViewController: NSViewController, QLPreviewingController, WKN
     }
 
     private func escapeHTML(_ string: String) -> String {
+        string.replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+    }
+}
+
+@objc(PreviewProvider)
+final class PreviewProvider: QLPreviewProvider, QLPreviewingController {
+    func providePreview(for request: QLFilePreviewRequest, completionHandler handler: @escaping @Sendable (QLPreviewReply?, Error?) -> Void) {
+        do {
+            let html = try DataPreviewRenderer.renderHTML(for: request.fileURL)
+            let reply = QLPreviewReply(dataOfContentType: .html, contentSize: CGSize(width: 960, height: 1100)) { _ in
+                Data(html.utf8)
+            }
+            reply.stringEncoding = .utf8
+            reply.title = request.fileURL.lastPathComponent
+            handler(reply, nil)
+        } catch {
+            handler(nil, error)
+        }
+    }
+}
+
+private enum DataPreviewRenderer {
+    static func renderHTML(for url: URL) throws -> String {
+        let hasScopedAccess = url.startAccessingSecurityScopedResource()
+        defer {
+            if hasScopedAccess {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        let raw = try Data(contentsOf: url)
+        let markdown = String(data: raw, encoding: .utf8)
+            ?? String(decoding: raw, as: UTF8.self)
+
+        let bundle = Bundle(for: PreviewProvider.self)
+        let markedJS = resource(bundle, "marked.min", "js")
+        let hljsJS = resource(bundle, "highlight.min", "js")
+        let body = renderMarkdown(markdown, markedJS: markedJS, hljsJS: hljsJS)
+        let title = escapeHTML(url.deletingPathExtension().lastPathComponent)
+        let css = resource(bundle, "preview", "css")
+
+        return """
+        <!doctype html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>\(title)</title>
+          <style>\(css)</style>
+        </head>
+        <body>
+          <main class="page">
+            <article class="markdown-body">\(body)</article>
+          </main>
+        </body>
+        </html>
+        """
+    }
+
+    private static func renderMarkdown(_ markdown: String, markedJS: String, hljsJS: String) -> String {
+        guard !markedJS.isEmpty, let context = JSContext() else {
+            return "<pre>" + escapeHTML(markdown) + "</pre>"
+        }
+
+        var jsThrew = false
+        context.exceptionHandler = { _, _ in jsThrew = true }
+        context.evaluateScript(markedJS)
+        if !hljsJS.isEmpty {
+            context.evaluateScript(hljsJS)
+        }
+        context.setObject(markdown as NSString, forKeyedSubscript: "__MD__" as NSString)
+
+        let result = context.evaluateScript("""
+        (function () {
+          if (typeof marked === 'undefined') return null;
+          var parse = marked.parse || marked;
+          var html = parse(String(__MD__), {
+            gfm: true,
+            breaks: false,
+            mangle: false,
+            headerIds: false
+          });
+          if (typeof hljs !== 'undefined') {
+            var unescape = function(s) {
+              return String(s)
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'");
+            };
+            html = html.replace(/<pre><code class="language-([^"]+)">([\\s\\S]*?)<\\/code><\\/pre>/g, function(_, lang, code) {
+              var raw = unescape(code);
+              try {
+                var hl;
+                if (hljs.getLanguage(lang)) {
+                  hl = hljs.highlight(raw, { language: lang, ignoreIllegals: true });
+                } else {
+                  hl = hljs.highlightAuto(raw);
+                }
+                return '<div class="code-block" data-lang="' + lang + '"><div class="code-lang">' + lang + '</div><pre><code class="hljs language-' + lang + '">' + hl.value + '</code></pre></div>';
+              } catch (e) {
+                return '<div class="code-block"><pre><code class="hljs">' + code + '</code></pre></div>';
+              }
+            });
+            html = html.replace(/<pre><code>([\\s\\S]*?)<\\/code><\\/pre>/g, function(_, code) {
+              try {
+                var hl = hljs.highlightAuto(unescape(code));
+                return '<div class="code-block"><pre><code class="hljs">' + hl.value + '</code></pre></div>';
+              } catch (e) {
+                return '<div class="code-block"><pre><code class="hljs">' + code + '</code></pre></div>';
+              }
+            });
+          }
+          var taskIndex = 0;
+          html = html.replace(/<li>\\s*<input([^>]*type="checkbox"[^>]*)>\\s*/gi, function(_, attrs) {
+            var checked = /checked/i.test(attrs);
+            var index = taskIndex++;
+            var label = checked ? 'Task complete' : 'Task incomplete';
+            return '<li class="task-item ' + (checked ? 'task-done' : 'task-todo') + '"><button class="task-checkbox" type="button" data-task-index="' + index + '" data-checked="' + checked + '" aria-pressed="' + checked + '" aria-label="' + label + '"><span class="task-checkbox-mark" aria-hidden="true">' + (checked ? '✓' : '') + '</span></button>';
+          });
+          return html;
+        })()
+        """)
+
+        if !jsThrew,
+           let html = result?.toString(),
+           html != "undefined",
+           html != "null",
+           !html.isEmpty {
+            return html
+        }
+
+        return "<pre>" + escapeHTML(markdown) + "</pre>"
+    }
+
+    private static func resource(_ bundle: Bundle, _ name: String, _ ext: String) -> String {
+        guard let url = bundle.url(forResource: name, withExtension: ext),
+              let string = try? String(contentsOf: url, encoding: .utf8) else { return "" }
+        return string
+    }
+
+    private static func escapeHTML(_ string: String) -> String {
         string.replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
