@@ -5,7 +5,6 @@ import QuickLookUI
 import UniformTypeIdentifiers
 import WebKit
 
-@objc(PreviewViewController)
 final class PreviewViewController: NSViewController, QLPreviewingController, WKNavigationDelegate, WKScriptMessageHandler {
     private static let taskToggleMessage = "taskToggle"
     private static let taskMarkerPattern = try! NSRegularExpression(pattern: #"^[ \t]*(?:>[ \t]*)*(?:[-+*]|\d+[.)])[ \t]+\[([ xX])\]"#)
@@ -353,7 +352,6 @@ final class PreviewViewController: NSViewController, QLPreviewingController, WKN
     }
 }
 
-@objc(PreviewProvider)
 final class PreviewProvider: QLPreviewProvider, QLPreviewingController {
     func providePreview(for request: QLFilePreviewRequest, completionHandler handler: @escaping @Sendable (QLPreviewReply?, Error?) -> Void) {
         do {

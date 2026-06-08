@@ -70,7 +70,13 @@ qlmanage -r && qlmanage -r cache
 
 Do not use `cp -R ... /Applications/` over an existing app bundle. It can merge stale signed files with the new build and make the embedded Quick Look extension invalid.
 
-If Finder still does not render Markdown previews, verify Spotlight is enabled. Quick Look and LaunchServices need it to resolve file types and register app extensions:
+If Finder still does not render Markdown previews, first verify the NotaPeek Quick Look extension is registered:
+
+```bash
+pluginkit -m -A -D -vvv -i dev.rachel.notapeek.quicklook
+```
+
+Spotlight can affect file type metadata on some systems, so it is worth checking after extension registration:
 
 ```bash
 mdutil -s /
@@ -91,7 +97,7 @@ bun run release:dmg
 Output:
 
 ```text
-release/NotaPeek-1.0.3-arm64.dmg
+release/NotaPeek-1.0.5-arm64.dmg
 ```
 
 ## Project Structure
