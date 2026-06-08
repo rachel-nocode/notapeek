@@ -44,7 +44,7 @@ final class PreviewViewController: NSViewController, QLPreviewingController, WKN
         do {
             previewURL = url
             let html = try renderHTML(for: url)
-            webView.loadHTMLString(html, baseURL: nil)
+            webView.loadHTMLString(html, baseURL: url.deletingLastPathComponent())
             // Tell Quick Look we're done synchronously — the WKWebView paints
             // asynchronously once the WebContent process is ready. Waiting on
             // didFinishNavigation hangs the preview spinner in the sandbox.
@@ -95,7 +95,8 @@ final class PreviewViewController: NSViewController, QLPreviewingController, WKN
         let bundle = Bundle(for: PreviewViewController.self)
         let markedJS = resource(bundle, "marked.min", "js")
         let hljsJS = resource(bundle, "highlight.min", "js")
-        let body = renderMarkdown(markdown, markedJS: markedJS, hljsJS: hljsJS)
+        let rendered = renderMarkdown(markdown, markedJS: markedJS, hljsJS: hljsJS)
+        let body = LocalImageInliner.inlineImages(in: rendered, baseURL: url.deletingLastPathComponent())
         let title = escapeHTML(url.deletingPathExtension().lastPathComponent)
         let css = resource(bundle, "preview", "css")
 
@@ -386,7 +387,8 @@ private enum DataPreviewRenderer {
         let bundle = Bundle(for: PreviewProvider.self)
         let markedJS = resource(bundle, "marked.min", "js")
         let hljsJS = resource(bundle, "highlight.min", "js")
-        let body = renderMarkdown(markdown, markedJS: markedJS, hljsJS: hljsJS)
+        let rendered = renderMarkdown(markdown, markedJS: markedJS, hljsJS: hljsJS)
+        let body = LocalImageInliner.inlineImages(in: rendered, baseURL: url.deletingLastPathComponent())
         let title = escapeHTML(url.deletingPathExtension().lastPathComponent)
         let css = resource(bundle, "preview", "css")
 
@@ -510,6 +512,94 @@ private enum TaskUpdateError: LocalizedError {
         case .taskNotFound:
             return "No matching task marker was found in the markdown source."
         }
+    }
+}
+
+private enum LocalImageInliner {
+    private static let imagePattern = try! NSRegularExpression(
+        pattern: #"<img\b[^>]*\bsrc\s*=\s*(["'])(.*?)\1[^>]*>"#,
+        options: [.caseInsensitive]
+    )
+
+    static func inlineImages(in html: String, baseURL: URL) -> String {
+        let fullRange = NSRange(html.startIndex..<html.endIndex, in: html)
+        let matches = imagePattern.matches(in: html, range: fullRange)
+        guard !matches.isEmpty else { return html }
+
+        var output = html
+        for match in matches.reversed() where match.numberOfRanges > 2 {
+            guard let srcRange = Range(match.range(at: 2), in: output) else { continue }
+            let src = String(output[srcRange])
+            guard let dataURL = dataURL(for: src, baseURL: baseURL) else { continue }
+            output.replaceSubrange(srcRange, with: dataURL)
+        }
+        return output
+    }
+
+    private static func dataURL(for src: String, baseURL: URL) -> String? {
+        let decodedSrc = decodeHTML(src.trimmingCharacters(in: .whitespacesAndNewlines))
+        let lower = decodedSrc.lowercased()
+        if lower.hasPrefix("data:") ||
+            lower.hasPrefix("http://") ||
+            lower.hasPrefix("https://") ||
+            lower.hasPrefix("blob:") {
+            return nil
+        }
+
+        guard let imageURL = fileURL(for: decodedSrc, baseURL: baseURL),
+              let mime = mimeType(for: imageURL) else {
+            return nil
+        }
+
+        let hasScopedAccess = imageURL.startAccessingSecurityScopedResource()
+        defer {
+            if hasScopedAccess {
+                imageURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        guard let data = try? Data(contentsOf: imageURL) else { return nil }
+        return "data:\(mime);base64,\(data.base64EncodedString())"
+    }
+
+    private static func fileURL(for src: String, baseURL: URL) -> URL? {
+        let path = src.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false)[0]
+            .split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)[0]
+        let cleaned = String(path).removingPercentEncoding ?? String(path)
+
+        if let url = URL(string: cleaned), url.isFileURL {
+            return url.standardizedFileURL
+        }
+
+        if cleaned.hasPrefix("/") {
+            return URL(fileURLWithPath: cleaned).standardizedFileURL
+        }
+
+        return URL(fileURLWithPath: cleaned, relativeTo: baseURL).standardizedFileURL
+    }
+
+    private static func mimeType(for url: URL) -> String? {
+        switch url.pathExtension.lowercased() {
+        case "png": return "image/png"
+        case "jpg", "jpeg": return "image/jpeg"
+        case "gif": return "image/gif"
+        case "webp": return "image/webp"
+        case "svg": return "image/svg+xml"
+        case "bmp": return "image/bmp"
+        case "tif", "tiff": return "image/tiff"
+        case "heic": return "image/heic"
+        case "heif": return "image/heif"
+        case "avif": return "image/avif"
+        default: return nil
+        }
+    }
+
+    private static func decodeHTML(_ string: String) -> String {
+        string.replacingOccurrences(of: "&amp;", with: "&")
+            .replacingOccurrences(of: "&quot;", with: "\"")
+            .replacingOccurrences(of: "&#39;", with: "'")
+            .replacingOccurrences(of: "&lt;", with: "<")
+            .replacingOccurrences(of: "&gt;", with: ">")
     }
 }
 
