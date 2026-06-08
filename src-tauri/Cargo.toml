@@ -1,6 +1,6 @@
 [package]
 name = "notapeek"
-version = "1.0.2"
+version = "1.0.4"
 description = "NotaPeek — beautiful Quick Look + viewer for .md files"
 authors = ["Rachel Larralde"]
 edition = "2021"
