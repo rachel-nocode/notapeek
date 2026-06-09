@@ -103,4 +103,4 @@ release/NotaPeek-1.0.3-arm64.dmg
 
 ## License
 
-Copyright Rachel noCode. All rights reserved.
+MIT License.
